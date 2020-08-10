@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
 
 const apiMock = new AxiosMock(api);
 
-describe('Orders', () => {
+describe('FoodDetails', () => {
   it('should be able to list the food', async () => {
     const item = {
       id: 1,

@@ -43,6 +43,11 @@ interface Category {
   image_url: string;
 }
 
+interface FoodsParams {
+  category_like?: number;
+  name_like?: string;
+}
+
 const Dashboard: React.FC = () => {
   const [foods, setFoods] = useState<Food[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -55,11 +60,26 @@ const Dashboard: React.FC = () => {
 
   async function handleNavigate(id: number): Promise<void> {
     // Navigate do ProductDetails page
+    navigation.navigate('FoodDetails', { id });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      await api
+        .get('foods', {
+          params: {
+            category_like: selectedCategory,
+            name_like: searchValue,
+          },
+        })
+        .then(response => {
+          const foodsFormatted = response.data.map(food => ({
+            ...food,
+            formattedPrice: formatValue(food.price),
+          }));
+
+          setFoods(foodsFormatted);
+        });
     }
 
     loadFoods();
@@ -68,6 +88,9 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     async function loadCategories(): Promise<void> {
       // Load categories from API
+      await api
+        .get('categories')
+        .then(response => setCategories(response.data));
     }
 
     loadCategories();
@@ -75,6 +98,10 @@ const Dashboard: React.FC = () => {
 
   function handleSelectCategory(id: number): void {
     // Select / deselect category
+    setSelectedCategory(state => {
+      if (state === id) return undefined;
+      return id;
+    });
   }
 
   return (
@@ -125,7 +152,7 @@ const Dashboard: React.FC = () => {
         <FoodsContainer>
           <Title>Pratos</Title>
           <FoodList>
-            {foods.map(food => (
+            {foods?.map(food => (
               <Food
                 key={food.id}
                 onPress={() => handleNavigate(food.id)}
